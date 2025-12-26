@@ -5,6 +5,7 @@
 -/
 
 import Staple.IncludeStr
+import Staple.String
 
 namespace Staple
 
