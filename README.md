@@ -35,7 +35,7 @@ lake build
 Add to your `lakefile.lean`:
 
 ```lean
-require staple from ".." / "staple"  -- or git/path as appropriate
+require staple from git "https://github.com/nathanial/staple" @ "v0.0.1"
 ```
 
 Then import in your Lean files:
