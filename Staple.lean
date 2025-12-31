@@ -4,6 +4,7 @@
   A collection of commonly-used utilities for Lean 4 projects.
 -/
 
+import Staple.Hex
 import Staple.IncludeStr
 import Staple.Json
 import Staple.String

@@ -4,6 +4,200 @@ This document tracks potential improvements, new features, and code cleanup oppo
 
 ## Feature Proposals
 
+### [Priority: High] Hex Encoding/Decoding Utilities (Staple.Hex)
+
+**Description:** Add hex encoding and decoding utilities for characters, bytes, and byte arrays.
+
+**Rationale:** This is the most duplicated utility across the workspace, appearing in 6+ projects with nearly identical implementations:
+
+| Project | Location |
+|---------|----------|
+| tracer | `Tracer/Core/TraceId.lean:35-81`, `SpanId.lean:27-59` |
+| tincture | `Tincture/Parse.lean:12-27` |
+| chisel | `Chisel/Parser/Lexer.lean:210-218` |
+| totem | `Totem/Parser/Primitives.lean:34-39` |
+| herald | `Herald/Parser/Primitives.lean:64-68` |
+
+**Proposed API:**
+```lean
+namespace Staple.Hex
+
+/-- Convert a hex character ('0'-'9', 'a'-'f', 'A'-'F') to its numeric value. -/
+def hexCharToNat (c : Char) : Option Nat
+
+/-- Convert a value 0-15 to its lowercase hex character. -/
+def nibbleToHexChar (n : Nat) : Char
+
+/-- Check if a character is a valid hex digit. -/
+def isHexDigit (c : Char) : Bool
+
+/-- Encode a ByteArray as a lowercase hex string. -/
+def ByteArray.toHex (bytes : ByteArray) : String
+
+/-- Decode a hex string to a ByteArray. Returns none if invalid. -/
+def ByteArray.fromHex (s : String) : Option ByteArray
+
+/-- Encode a single byte as two hex characters. -/
+def UInt8.toHex (b : UInt8) : String
+
+end Staple.Hex
+```
+
+**Affected Files:**
+- `Staple/Hex.lean` (new file)
+- `Staple.lean` (add import)
+
+**Estimated Effort:** Small
+
+**Best Reference Implementation:** `util/tracer/Tracer/Core/TraceId.lean` - cleanest with `Option` return types
+
+---
+
+### [Priority: High] ASCII Character Classification (Staple.Ascii)
+
+**Description:** Add comprehensive ASCII character classification and case conversion utilities.
+
+**Rationale:** Duplicated in 3+ projects with similar implementations:
+
+| Project | Location |
+|---------|----------|
+| markup | `Markup/Core/Ascii.lean:7-76` (most complete) |
+| totem | `Totem/Parser/Primitives.lean:11-32` |
+| herald | `Herald/Parser/Primitives.lean:14-62` |
+
+**Proposed API:**
+```lean
+namespace Staple.Ascii
+
+-- Character classification
+def isWhitespace (c : Char) : Bool  -- space, tab, newline, carriage return
+def isAlpha (c : Char) : Bool       -- a-z, A-Z
+def isDigit (c : Char) : Bool       -- 0-9
+def isAlphaNum (c : Char) : Bool    -- alpha or digit
+def isHexDigit (c : Char) : Bool    -- 0-9, a-f, A-F
+def isOctalDigit (c : Char) : Bool  -- 0-7
+def isBinaryDigit (c : Char) : Bool -- 0-1
+def isPrintable (c : Char) : Bool   -- 0x20-0x7E
+
+-- Case conversion
+def toLower (c : Char) : Char
+def toUpper (c : Char) : Char
+def String.toLowerAscii (s : String) : String
+def String.toUpperAscii (s : String) : String
+
+-- UInt8 variants for byte-level parsing
+def isDigitU8 (b : UInt8) : Bool
+def isAlphaU8 (b : UInt8) : Bool
+def isHexDigitU8 (b : UInt8) : Bool
+
+end Staple.Ascii
+```
+
+**Affected Files:**
+- `Staple/Ascii.lean` (new file)
+- `Staple.lean` (add import)
+
+**Estimated Effort:** Small
+
+**Best Reference Implementation:** `web/markup/Markup/Core/Ascii.lean` - most complete module
+
+---
+
+### [Priority: High] String Padding Utilities (Staple.StringPad)
+
+**Description:** Add string padding and trimming utilities.
+
+**Rationale:** Duplicated in 3+ projects:
+
+| Project | Location |
+|---------|----------|
+| totem | `Totem/Core/Value.lean:8-15` |
+| arbor | `Arbor/Text/Renderer.lean:19-22` |
+| terminus | Various widget files |
+
+**Proposed API:**
+```lean
+namespace Staple
+
+/-- Pad a string on the left to reach the specified width. -/
+def String.padLeft (s : String) (width : Nat) (c : Char := ' ') : String
+
+/-- Pad a string on the right to reach the specified width. -/
+def String.padRight (s : String) (width : Nat) (c : Char := ' ') : String
+
+/-- Drop characters from the right while predicate holds. -/
+def String.dropRightWhile (s : String) (p : Char → Bool) : String
+
+/-- Drop characters from the left while predicate holds. -/
+def String.dropLeftWhile (s : String) (p : Char → Bool) : String
+
+end Staple
+```
+
+**Affected Files:**
+- `Staple/String.lean` (extend existing)
+
+**Estimated Effort:** Small
+
+**Best Reference Implementation:** `data/totem/Totem/Core/Value.lean` - includes both padding and trimming
+
+---
+
+### [Priority: Medium] Conversion Utilities (Staple.Conversion)
+
+**Description:** Add common type conversion utilities.
+
+**Rationale:** Several projects implement similar conversion patterns:
+
+| Project | Location |
+|---------|----------|
+| chisel | `Chisel/Parser/Lexer.lean:91-93` |
+| terminus | `Terminus/Widgets/BigText.lean:17-18` |
+
+**Proposed API:**
+```lean
+namespace Staple
+
+/-- Convert a list of characters to a string efficiently. -/
+def String.ofCharList (cs : List Char) : String
+
+/-- Convert a list to an array. -/
+def Array.ofList {α : Type} (xs : List α) : Array α
+
+end Staple
+```
+
+**Affected Files:**
+- `Staple/Conversion.lean` (new file)
+- `Staple.lean` (add import)
+
+**Estimated Effort:** Small
+
+---
+
+### [Priority: Medium] JSON Unescape Function
+
+**Description:** Add `unescapeString` as complement to existing `escapeString`.
+
+**Rationale:** Projects doing JSON parsing (loom, oracle, homebase-app) need to unescape JSON strings. Currently only escaping is provided.
+
+**Proposed API:**
+```lean
+namespace Staple.Json
+
+/-- Unescape a JSON string value, handling \\", \\\\, \\n, \\r, \\t, \\uXXXX. -/
+def unescapeString (s : String) : Option String
+
+end Staple.Json
+```
+
+**Affected Files:**
+- `Staple/Json.lean`
+
+**Estimated Effort:** Small
+
+---
+
 ### [Priority: High] include_bytes% Macro for Binary File Embedding
 
 **Description:** Add a companion macro to `include_str%` that embeds binary files as `ByteArray` at compile time.
@@ -55,29 +249,23 @@ instance [ToJsonStr α] : ToJsonStr (Array α) where
 
 ---
 
-### [Priority: Medium] String Utility Expansion
+### [Priority: Medium] Additional String Utilities
 
-**Description:** Add commonly needed string manipulation functions beyond `containsSubstr`.
+**Description:** Add string manipulation functions beyond padding (see String Padding Utilities above).
 
-**Rationale:** Analysis of the workspace shows repeated patterns that could be consolidated:
-- `String.trim` is used but is built-in
-- Padding functions for formatted output
-- String splitting with limit
-- Case conversion helpers
+**Rationale:** Analysis of the workspace shows repeated patterns that could be consolidated.
 
 **Proposed Functions:**
-- `String.padLeft : String -> Nat -> Char -> String`
-- `String.padRight : String -> Nat -> Char -> String`
-- `String.splitFirst : String -> String -> Option (String x String)`
-- `String.splitLast : String -> String -> Option (String x String)`
-- `String.removePrefix : String -> String -> String`
-- `String.removeSuffix : String -> String -> String`
-- `String.truncate : String -> Nat -> String -> String` (with ellipsis)
+- `String.splitFirst : String -> String -> Option (String × String)` - split at first occurrence
+- `String.splitLast : String -> String -> Option (String × String)` - split at last occurrence
+- `String.removePrefix : String -> String -> String` - remove prefix if present
+- `String.removeSuffix : String -> String -> String` - remove suffix if present
+- `String.truncate : String -> Nat -> String -> String` - truncate with ellipsis
 
 **Affected Files:**
 - `Staple/String.lean`
 
-**Estimated Effort:** Medium
+**Estimated Effort:** Small
 
 ---
 
