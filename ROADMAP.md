@@ -294,31 +294,16 @@ def String.containsSubstr (haystack needle : String) : Bool :=
 
 ---
 
-### [Priority: Medium] Add Error Handling to include_str%
+### [Status: COMPLETED] Add Error Handling to include_str% and include_bytes%
 
-**Current State:** The `include_str%` macro will fail with an opaque IO error if the file doesn't exist.
+**Implemented in:** `Staple/IncludeStr.lean`, `Staple/IncludeBytes.lean`
 
-**Proposed Change:** Provide a clearer error message that includes the resolved file path and suggestions.
+Both macros now check if the file exists before attempting to read, providing a clear error message with:
+- The resolved file path
+- The original path argument
+- The source file location
 
-**Benefits:** Better developer experience when paths are incorrect.
-
-**Affected Files:**
-- `Staple/IncludeStr.lean`
-
-**Estimated Effort:** Small
-
-**Implementation Notes:**
-```lean
-elab "include_str% " path:str : term => do
-  let ctx ← readThe Core.Context
-  let srcPath := ctx.fileName
-  let srcDir := System.FilePath.parent srcPath |>.getD ""
-  let filePath := srcDir / path.getString
-  if !(← filePath.pathExists) then
-    throwError s!"include_str%: File not found: {filePath}\n  (resolved from {path.getString} relative to {srcPath})"
-  let contents ← IO.FS.readFile filePath
-  return mkStrLit contents
-```
+Tests added in `Tests/Include.lean` (4 tests).
 
 ---
 

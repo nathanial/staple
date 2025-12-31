@@ -6,6 +6,7 @@ import Tests.Hex
 import Tests.Ascii
 import Tests.String
 import Tests.Json
+import Tests.Include
 
 open Crucible
 

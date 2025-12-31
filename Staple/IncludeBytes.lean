@@ -18,9 +18,12 @@ elab "include_bytes% " path:str : term => do
   let srcPath := ctx.fileName
   let srcDir := System.FilePath.parent srcPath |>.getD ""
   let filePath := srcDir / path.getString
+  let fileExists ← filePath.pathExists
+  if !fileExists then
+    throwError "include_bytes%: File not found: {filePath}\n  (resolved from \"{path.getString}\" relative to {srcPath})"
   let contents ← IO.FS.readBinFile filePath
-  -- Build the ByteArray using quotation
-  let bytesExpr ← contents.toList.foldrM (init := ← `(#[])) fun b acc => do
+  -- Build the ByteArray using quotation (foldlM to preserve order)
+  let bytesExpr ← contents.toList.foldlM (init := ← `(#[])) fun acc b => do
     let bLit := Syntax.mkNumLit (toString b.toNat)
     `(($acc).push $bLit)
   elabTerm (← `(ByteArray.mk $bytesExpr)) none

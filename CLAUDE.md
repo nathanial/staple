@@ -10,7 +10,7 @@ Staple is a Lean 4 utilities library providing commonly-used macros and helpers 
 
 ```bash
 lake build    # Build the library
-lake test     # Run test suite (47 tests)
+lake test     # Run test suite (51 tests)
 ```
 
 ## Project Structure
@@ -31,8 +31,10 @@ staple/
 └── Tests/
     ├── Ascii.lean        # ASCII tests
     ├── Hex.lean          # Hex tests
+    ├── Include.lean      # include_str%/include_bytes% tests
     ├── Json.lean         # JSON tests
-    └── String.lean       # String tests
+    ├── String.lean       # String tests
+    └── fixtures/         # Test fixture files
 ```
 
 ## Key Modules

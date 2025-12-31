@@ -18,6 +18,9 @@ elab "include_str% " path:str : term => do
   let srcPath := ctx.fileName
   let srcDir := System.FilePath.parent srcPath |>.getD ""
   let filePath := srcDir / path.getString
+  let fileExists ← filePath.pathExists
+  if !fileExists then
+    throwError "include_str%: File not found: {filePath}\n  (resolved from \"{path.getString}\" relative to {srcPath})"
   let contents ← IO.FS.readFile filePath
   return mkStrLit contents
 
