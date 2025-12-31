@@ -4,142 +4,78 @@ This document tracks potential improvements, new features, and code cleanup oppo
 
 ## Feature Proposals
 
-### [Priority: High] Hex Encoding/Decoding Utilities (Staple.Hex)
+### [Status: COMPLETED] Hex Encoding/Decoding Utilities (Staple.Hex)
 
-**Description:** Add hex encoding and decoding utilities for characters, bytes, and byte arrays.
+**Implemented in:** `Staple/Hex.lean`
 
-**Rationale:** This is the most duplicated utility across the workspace, appearing in 6+ projects with nearly identical implementations:
+Provides hex encoding and decoding utilities for characters, bytes, and byte arrays.
 
-| Project | Location |
-|---------|----------|
-| tracer | `Tracer/Core/TraceId.lean:35-81`, `SpanId.lean:27-59` |
-| tincture | `Tincture/Parse.lean:12-27` |
-| chisel | `Chisel/Parser/Lexer.lean:210-218` |
-| totem | `Totem/Parser/Primitives.lean:34-39` |
-| herald | `Herald/Parser/Primitives.lean:64-68` |
+**API:**
+- `hexCharToNat : Char → Option Nat` - Convert hex char to numeric value
+- `nibbleToHexChar : Nat → Char` - Convert 0-15 to hex char
+- `isHexDigit : Char → Bool` - Check if valid hex digit
+- `hexPairToUInt8 : Char → Char → Option UInt8` - Parse two hex chars as byte
+- `uint8ToHex : UInt8 → String` - Encode byte as two hex chars
+- `ByteArray.toHex : ByteArray → String` - Encode bytes as hex string
+- `ByteArray.fromHex : String → Option ByteArray` - Decode hex string to bytes
+- `hexByteToNat : UInt8 → Option Nat` - UInt8 variant of hexCharToNat
+- `isHexDigitByte : UInt8 → Bool` - UInt8 variant of isHexDigit
 
-**Proposed API:**
-```lean
-namespace Staple.Hex
-
-/-- Convert a hex character ('0'-'9', 'a'-'f', 'A'-'F') to its numeric value. -/
-def hexCharToNat (c : Char) : Option Nat
-
-/-- Convert a value 0-15 to its lowercase hex character. -/
-def nibbleToHexChar (n : Nat) : Char
-
-/-- Check if a character is a valid hex digit. -/
-def isHexDigit (c : Char) : Bool
-
-/-- Encode a ByteArray as a lowercase hex string. -/
-def ByteArray.toHex (bytes : ByteArray) : String
-
-/-- Decode a hex string to a ByteArray. Returns none if invalid. -/
-def ByteArray.fromHex (s : String) : Option ByteArray
-
-/-- Encode a single byte as two hex characters. -/
-def UInt8.toHex (b : UInt8) : String
-
-end Staple.Hex
-```
-
-**Affected Files:**
-- `Staple/Hex.lean` (new file)
-- `Staple.lean` (add import)
-
-**Estimated Effort:** Small
-
-**Best Reference Implementation:** `util/tracer/Tracer/Core/TraceId.lean` - cleanest with `Option` return types
+**TODO comments added to:**
+- `util/tracer/Tracer/Core/TraceId.lean`
+- `util/tracer/Tracer/Core/SpanId.lean`
+- `graphics/tincture/Tincture/Parse.lean`
+- `data/chisel/Chisel/Parser/Lexer.lean`
+- `data/totem/Totem/Parser/Primitives.lean`
+- `web/herald/Herald/Parser/Primitives.lean`
 
 ---
 
-### [Priority: High] ASCII Character Classification (Staple.Ascii)
+### [Status: COMPLETED] ASCII Character Classification (Staple.Ascii)
 
-**Description:** Add comprehensive ASCII character classification and case conversion utilities.
+**Implemented in:** `Staple/Ascii.lean`
 
-**Rationale:** Duplicated in 3+ projects with similar implementations:
+Provides comprehensive ASCII character classification and case conversion utilities.
 
-| Project | Location |
-|---------|----------|
-| markup | `Markup/Core/Ascii.lean:7-76` (most complete) |
-| totem | `Totem/Parser/Primitives.lean:11-32` |
-| herald | `Herald/Parser/Primitives.lean:14-62` |
+**API:**
+- `isWhitespace : Char → Bool` - space, tab, newline, carriage return
+- `isAlpha : Char → Bool` - a-z, A-Z
+- `isDigit : Char → Bool` - 0-9
+- `isAlphaNum : Char → Bool` - alpha or digit
+- `isOctalDigit : Char → Bool` - 0-7
+- `isBinaryDigit : Char → Bool` - 0-1
+- `isPrintable : Char → Bool` - 0x20-0x7E
+- `toLower : Char → Char` - uppercase to lowercase
+- `toUpper : Char → Char` - lowercase to uppercase
+- `String.toLowerAscii : String → String` - convert string to lowercase
+- `String.toUpperAscii : String → String` - convert string to uppercase
+- `isDigitByte : UInt8 → Bool` - byte variant
+- `isAlphaByte : UInt8 → Bool` - byte variant
+- `isWhitespaceByte : UInt8 → Bool` - byte variant
 
-**Proposed API:**
-```lean
-namespace Staple.Ascii
-
--- Character classification
-def isWhitespace (c : Char) : Bool  -- space, tab, newline, carriage return
-def isAlpha (c : Char) : Bool       -- a-z, A-Z
-def isDigit (c : Char) : Bool       -- 0-9
-def isAlphaNum (c : Char) : Bool    -- alpha or digit
-def isHexDigit (c : Char) : Bool    -- 0-9, a-f, A-F
-def isOctalDigit (c : Char) : Bool  -- 0-7
-def isBinaryDigit (c : Char) : Bool -- 0-1
-def isPrintable (c : Char) : Bool   -- 0x20-0x7E
-
--- Case conversion
-def toLower (c : Char) : Char
-def toUpper (c : Char) : Char
-def String.toLowerAscii (s : String) : String
-def String.toUpperAscii (s : String) : String
-
--- UInt8 variants for byte-level parsing
-def isDigitU8 (b : UInt8) : Bool
-def isAlphaU8 (b : UInt8) : Bool
-def isHexDigitU8 (b : UInt8) : Bool
-
-end Staple.Ascii
-```
-
-**Affected Files:**
-- `Staple/Ascii.lean` (new file)
-- `Staple.lean` (add import)
-
-**Estimated Effort:** Small
-
-**Best Reference Implementation:** `web/markup/Markup/Core/Ascii.lean` - most complete module
+**Candidates for TODO comments:**
+- `web/markup/Markup/Core/Ascii.lean`
+- `data/totem/Totem/Parser/Primitives.lean`
+- `web/herald/Herald/Parser/Primitives.lean`
 
 ---
 
-### [Priority: High] String Padding Utilities (Staple.StringPad)
+### [Status: COMPLETED] String Padding Utilities
 
-**Description:** Add string padding and trimming utilities.
+**Implemented in:** `Staple/String.lean`
 
-**Rationale:** Duplicated in 3+ projects:
+Added string padding and trimming utilities.
 
-| Project | Location |
-|---------|----------|
-| totem | `Totem/Core/Value.lean:8-15` |
-| arbor | `Arbor/Text/Renderer.lean:19-22` |
-| terminus | Various widget files |
+**API:**
+- `String.padLeft : String → Nat → Char → String` - left-pad to width (default: space)
+- `String.padRight : String → Nat → Char → String` - right-pad to width (default: space)
+- `String.dropRightWhile : String → (Char → Bool) → String` - trim from right
+- `String.dropLeftWhile : String → (Char → Bool) → String` - trim from left
+- `String.containsSubstr : String → String → Bool` - substring search (existing)
 
-**Proposed API:**
-```lean
-namespace Staple
-
-/-- Pad a string on the left to reach the specified width. -/
-def String.padLeft (s : String) (width : Nat) (c : Char := ' ') : String
-
-/-- Pad a string on the right to reach the specified width. -/
-def String.padRight (s : String) (width : Nat) (c : Char := ' ') : String
-
-/-- Drop characters from the right while predicate holds. -/
-def String.dropRightWhile (s : String) (p : Char → Bool) : String
-
-/-- Drop characters from the left while predicate holds. -/
-def String.dropLeftWhile (s : String) (p : Char → Bool) : String
-
-end Staple
-```
-
-**Affected Files:**
-- `Staple/String.lean` (extend existing)
-
-**Estimated Effort:** Small
-
-**Best Reference Implementation:** `data/totem/Totem/Core/Value.lean` - includes both padding and trimming
+**Candidates for TODO comments:**
+- `data/totem/Totem/Core/Value.lean`
+- `graphics/arbor/Arbor/Text/Renderer.lean`
 
 ---
 
@@ -198,54 +134,42 @@ end Staple.Json
 
 ---
 
-### [Priority: High] include_bytes% Macro for Binary File Embedding
+### [Status: COMPLETED] include_bytes% Macro for Binary File Embedding
 
-**Description:** Add a companion macro to `include_str%` that embeds binary files as `ByteArray` at compile time.
+**Implemented in:** `Staple/IncludeBytes.lean`
 
-**Rationale:** Several projects in the workspace (raster, afferent, assimptor) work with binary data like images, fonts, or model files. Currently, binary assets must be loaded at runtime. A compile-time binary embedding macro would enable:
-- Bundling small binary assets directly into executables
-- Avoiding runtime file I/O for embedded resources
-- Consistent pattern with `include_str%` for string resources
+Companion macro to `include_str%` that embeds binary files as `ByteArray` at compile time.
 
-**Affected Files:**
-- `Staple/IncludeBytes.lean` (new file)
-- `Staple.lean` (add import)
+**API:**
+- `include_bytes% "path/to/file"` - embed binary file as ByteArray literal
 
-**Estimated Effort:** Small
-
-**Implementation Notes:**
+**Usage:**
 ```lean
--- Proposed API
 def myIcon : ByteArray := include_bytes% "assets/icon.png"
 ```
 
 ---
 
-### [Priority: High] Additional ToJsonStr Instances
+### [Status: COMPLETED] Additional ToJsonStr Instances
 
-**Description:** Expand the `ToJsonStr` typeclass with instances for commonly used types in the workspace.
+**Implemented in:** `Staple/Json.lean`
 
-**Rationale:** Current instances cover `String`, `Nat`, `Int`, `Bool`, `Float`, and `UInt64`. Projects using `jsonStr!` frequently need to serialize additional types. Missing instances that would be valuable:
-- `Option α` (renders as `null` or the wrapped value)
-- `Array α` / `List α` (renders as JSON arrays)
-- `UInt8`, `UInt16`, `UInt32`, `Int8`, `Int16`, `Int32`, `Int64`
-- Potentially a `Json` instance for embedding raw JSON
+Expanded the `ToJsonStr` typeclass with instances for commonly used types.
 
-**Affected Files:**
-- `Staple/Json.lean`
+**New instances:**
+- `Option α` - renders as `null` or the wrapped value
+- `Array α` - renders as JSON array
+- `List α` - renders as JSON array
+- `UInt8`, `UInt16`, `UInt32` - numeric types
+- `Int8`, `Int16`, `Int32`, `Int64` - signed integer types
 
-**Estimated Effort:** Small
+---
 
-**Implementation Notes:**
-```lean
-instance [ToJsonStr α] : ToJsonStr (Option α) where
-  toJsonStr
-  | none => "null"
-  | some a => ToJsonStr.toJsonStr a
+### [Status: COMPLETED] Test Suite
 
-instance [ToJsonStr α] : ToJsonStr (Array α) where
-  toJsonStr arr := "[" ++ (arr.toList.map ToJsonStr.toJsonStr |> String.intercalate ", ") ++ "]"
-```
+**Implemented in:** `Tests.lean`, `Tests/Hex.lean`, `Tests/Ascii.lean`, `Tests/String.lean`, `Tests/Json.lean`
+
+Comprehensive Crucible test suite with 47 tests covering all modules.
 
 ---
 
@@ -439,7 +363,7 @@ elab "include_str% " path:str : term => do
 
 ### [Priority: High] Update Documentation for New Modules
 
-**Issue:** The CLAUDE.md and README.md only document `IncludeStr.lean` but the library now includes `String.lean` and `Json.lean`.
+**Issue:** The CLAUDE.md and README.md only document `IncludeStr.lean` but the library now includes all modules.
 
 **Location:**
 - `/Users/Shared/Projects/lean-workspace/util/staple/CLAUDE.md`
@@ -447,29 +371,24 @@ elab "include_str% " path:str : term => do
 
 **Action Required:**
 1. Update CLAUDE.md project structure to list all modules
-2. Update README.md to document `jsonStr!` macro and string utilities
+2. Update README.md to document all features
 3. Add usage examples for all features
 
 **Estimated Effort:** Small
 
 ---
 
-### [Priority: Medium] Add Test Suite
+### [Status: COMPLETED] Add Test Suite
 
-**Issue:** Staple has no test suite. As a foundational library used by 15+ projects, it should have comprehensive tests.
+**Implemented in:** `Tests.lean`, `Tests/*.lean`
 
-**Location:** Project root (needs new files)
+Added Crucible test framework with 47 tests covering:
+- Hex encoding/decoding (10 tests)
+- ASCII classification and case conversion (14 tests)
+- String padding and trimming (9 tests)
+- JSON escaping and ToJsonStr instances (14 tests)
 
-**Action Required:**
-1. Add crucible as a dev dependency
-2. Create `Tests/Main.lean` with test cases for:
-   - `String.containsSubstr` edge cases (empty strings, Unicode)
-   - `jsonStr!` macro with various types
-   - `ToJsonStr` instances
-   - `escapeString` with special characters
-   - `include_str%` behavior (would need test fixture files)
-
-**Estimated Effort:** Medium
+All tests passing (100%).
 
 ---
 
