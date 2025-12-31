@@ -63,6 +63,38 @@ instance : ToJsonStr Float where
 instance : ToJsonStr UInt64 where
   toJsonStr n := toString n.toNat
 
+instance : ToJsonStr UInt8 where
+  toJsonStr n := toString n.toNat
+
+instance : ToJsonStr UInt16 where
+  toJsonStr n := toString n.toNat
+
+instance : ToJsonStr UInt32 where
+  toJsonStr n := toString n.toNat
+
+instance : ToJsonStr Int8 where
+  toJsonStr n := toString n.toInt
+
+instance : ToJsonStr Int16 where
+  toJsonStr n := toString n.toInt
+
+instance : ToJsonStr Int32 where
+  toJsonStr n := toString n.toInt
+
+instance : ToJsonStr Int64 where
+  toJsonStr n := toString n.toInt
+
+instance {α : Type} [ToJsonStr α] : ToJsonStr (Option α) where
+  toJsonStr
+    | none => "null"
+    | some a => ToJsonStr.toJsonStr a
+
+instance {α : Type} [ToJsonStr α] : ToJsonStr (Array α) where
+  toJsonStr arr := "[" ++ (arr.toList.map ToJsonStr.toJsonStr |> String.intercalate ", ") ++ "]"
+
+instance {α : Type} [ToJsonStr α] : ToJsonStr (List α) where
+  toJsonStr lst := "[" ++ (lst.map ToJsonStr.toJsonStr |> String.intercalate ", ") ++ "]"
+
 /-! ## JSON Object Builder -/
 
 /-- Build a JSON object string from an array of key-value pairs.

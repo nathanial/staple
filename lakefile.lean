@@ -7,6 +7,15 @@ package staple where
     ⟨`relaxedAutoImplicit, false⟩
   ]
 
+require crucible from git "https://github.com/nathanial/crucible" @ "v0.0.1"
+
 @[default_target]
 lean_lib Staple where
   roots := #[`Staple]
+
+lean_lib Tests where
+  roots := #[`Tests]
+
+@[test_driver]
+lean_exe tests where
+  root := `Tests
