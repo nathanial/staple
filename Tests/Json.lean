@@ -6,6 +6,8 @@ import Staple.Json
 import Staple.Json.Value
 import Staple.Json.Render
 import Staple.Json.Parse
+import Staple.Json.ToJson
+import Staple.Json.FromJson
 
 namespace Tests.Json
 
@@ -300,6 +302,117 @@ test "parse - invalid input" := do
 
 test "parse - trailing content" := do
   (parse "null extra" |>.isOk) ≡ false
+
+/-! ## ToJson Tests -/
+
+test "ToJson - Bool" := do
+  (toJson true).compress ≡ "true"
+  (toJson false).compress ≡ "false"
+
+test "ToJson - Nat" := do
+  (toJson (42 : Nat)).compress ≡ "42"
+  (toJson (0 : Nat)).compress ≡ "0"
+
+test "ToJson - Int" := do
+  (toJson (42 : Int)).compress ≡ "42"
+  (toJson (-42 : Int)).compress ≡ "-42"
+
+test "ToJson - String" := do
+  (toJson "hello").compress ≡ "\"hello\""
+  (toJson "").compress ≡ "\"\""
+
+test "ToJson - Option" := do
+  (toJson (some 42 : Option Nat)).compress ≡ "42"
+  (toJson (none : Option Nat)).compress ≡ "null"
+
+test "ToJson - Array" := do
+  (toJson #[1, 2, 3]).compress ≡ "[1,2,3]"
+  (toJson (#[] : Array Nat)).compress ≡ "[]"
+
+test "ToJson - List" := do
+  (toJson [1, 2, 3]).compress ≡ "[1,2,3]"
+
+test "ToJson - Tuple" := do
+  (toJson (1, "two")).compress ≡ "[1,\"two\"]"
+
+test "ToJson - toJsonString" := do
+  toJsonString (42 : Nat) ≡ "42"
+  toJsonString "hello" ≡ "\"hello\""
+
+/-! ## FromJson Tests -/
+
+test "FromJson - Bool" := do
+  (fromJson? (Value.bool true) : Option Bool) ≡ some true
+  (fromJson? (Value.bool false) : Option Bool) ≡ some false
+
+test "FromJson - Nat" := do
+  (fromJson? (Value.mkInt 42) : Option Nat) ≡ some 42
+  (fromJson? (Value.mkInt (-1)) : Option Nat) ≡ none  -- negative
+
+test "FromJson - Int" := do
+  (fromJson? (Value.mkInt 42) : Option Int) ≡ some 42
+  (fromJson? (Value.mkInt (-42)) : Option Int) ≡ some (-42)
+
+test "FromJson - String" := do
+  (fromJson? (Value.str "hello") : Option String) ≡ some "hello"
+
+test "FromJson - Option" := do
+  (fromJson? Value.null : Option (Option Nat)) ≡ some none
+  (fromJson? (Value.mkInt 42) : Option (Option Nat)) ≡ some (some 42)
+
+test "FromJson - Array" := do
+  match fromJson? (Value.arr #[Value.mkInt 1, Value.mkInt 2]) with
+  | some (arr : Array Nat) => arr ≡ #[1, 2]
+  | none => throwThe IO.Error "parse failed"
+
+test "FromJson - List" := do
+  match fromJson? (Value.arr #[Value.mkInt 1, Value.mkInt 2]) with
+  | some (lst : List Nat) => lst ≡ [1, 2]
+  | none => throwThe IO.Error "parse failed"
+
+test "FromJson - Tuple" := do
+  match fromJson? (Value.arr #[Value.mkInt 1, Value.str "two"]) with
+  | some (p : Nat × String) => do
+    p.1 ≡ 1
+    p.2 ≡ "two"
+  | none => throwThe IO.Error "parse failed"
+
+/-! ## Round-trip ToJson/FromJson Tests -/
+
+test "ToJson/FromJson round-trip - primitives" := do
+  -- Bool
+  let b := true
+  (fromJson? (toJson b) : Option Bool) ≡ some b
+
+  -- Nat
+  let n : Nat := 42
+  (fromJson? (toJson n) : Option Nat) ≡ some n
+
+  -- Int
+  let i : Int := -100
+  (fromJson? (toJson i) : Option Int) ≡ some i
+
+  -- String
+  let s := "hello world"
+  (fromJson? (toJson s) : Option String) ≡ some s
+
+test "ToJson/FromJson round-trip - containers" := do
+  -- Array
+  let arr : Array Nat := #[1, 2, 3]
+  (fromJson? (toJson arr) : Option (Array Nat)) ≡ some arr
+
+  -- List
+  let lst : List Nat := [1, 2, 3]
+  (fromJson? (toJson lst) : Option (List Nat)) ≡ some lst
+
+  -- Option
+  let opt : Option Nat := some 42
+  (fromJson? (toJson opt) : Option (Option Nat)) ≡ some opt
+
+test "fromJsonString? - parse and convert" := do
+  (fromJsonString? "42" : Option Nat) ≡ some 42
+  (fromJsonString? "\"hello\"" : Option String) ≡ some "hello"
+  (fromJsonString? "[1,2,3]" : Option (Array Nat)) ≡ some #[1, 2, 3]
 
 #generate_tests
 
