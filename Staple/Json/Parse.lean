@@ -11,11 +11,11 @@ namespace Staple.Json
 open Sift
 
 /-- Skip JSON whitespace (space, tab, LF, CR) -/
-private def jsonWs : Parser Unit :=
+private def jsonWs : Parser Unit Unit :=
   skipWhile (fun c => c == ' ' || c == '\t' || c == '\n' || c == '\r')
 
 /-- Parse a JSON escape sequence after the backslash -/
-private def parseEscape : Parser Char := do
+private def parseEscape : Parser Unit Char := do
   let escaped ← anyChar
   match escaped with
   | 'n' => pure '\n'
@@ -30,7 +30,7 @@ private def parseEscape : Parser Char := do
   | c => Parser.fail s!"invalid escape sequence: \\{c}"
 
 /-- Parse a JSON string literal -/
-private partial def jsonString : Parser String := do
+private partial def jsonString : Parser Unit String := do
   let _ ← char '"'
   let mut result := ""
   while (← peek) != some '"' do
@@ -44,7 +44,7 @@ private partial def jsonString : Parser String := do
   return result
 
 /-- Parse a JSON number (integer or float) -/
-private def jsonNumber : Parser JsonNumber := do
+private def jsonNumber : Parser Unit JsonNumber := do
   -- Optional minus sign
   let negative := (← Sift.optional (char '-')).isSome
   -- Integer part - first digit
@@ -96,7 +96,7 @@ private def jsonNumber : Parser JsonNumber := do
     pure (.int signedValue)
 
 /-- Parse a JSON value -/
-partial def parseValue : Parser Value := do
+partial def parseValue : Parser Unit Value := do
   jsonWs
   let c ← peek
   match c with
@@ -113,7 +113,7 @@ partial def parseValue : Parser Value := do
       Parser.fail s!"unexpected character '{c}'"
   | none => Parser.fail "unexpected end of input"
 where
-  parseArray : Parser Value := do
+  parseArray : Parser Unit Value := do
     let _ ← char '['
     jsonWs
     if (← peek) == some ']' then
@@ -133,7 +133,7 @@ where
     let _ ← char ']'
     return .arr items
 
-  parseObject : Parser Value := do
+  parseObject : Parser Unit Value := do
     let _ ← char '{'
     jsonWs
     if (← peek) == some '}' then
