@@ -26,6 +26,7 @@ import Staple.Json.Render
 import Staple.Json.Parse
 import Staple.Json.ToJson
 import Staple.Json.FromJson
+import Staple.Json.Naming
 
 namespace Staple.Json
 

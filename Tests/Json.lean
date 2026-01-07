@@ -414,6 +414,135 @@ test "fromJsonString? - parse and convert" := do
   (fromJsonString? "\"hello\"" : Option String) ≡ some "hello"
   (fromJsonString? "[1,2,3]" : Option (Array Nat)) ≡ some #[1, 2, 3]
 
+/-! ## FieldNaming Tests -/
+
+test "splitWords - camelCase" := do
+  FieldNaming.splitWords "firstName" ≡ ["first", "Name"]
+  FieldNaming.splitWords "lastName" ≡ ["last", "Name"]
+  FieldNaming.splitWords "getUserById" ≡ ["get", "User", "By", "Id"]
+
+test "splitWords - snake_case" := do
+  FieldNaming.splitWords "first_name" ≡ ["first", "name"]
+  FieldNaming.splitWords "last_name" ≡ ["last", "name"]
+  FieldNaming.splitWords "get_user_by_id" ≡ ["get", "user", "by", "id"]
+
+test "splitWords - kebab-case" := do
+  FieldNaming.splitWords "first-name" ≡ ["first", "name"]
+  FieldNaming.splitWords "get-user-by-id" ≡ ["get", "user", "by", "id"]
+
+test "splitWords - PascalCase" := do
+  FieldNaming.splitWords "FirstName" ≡ ["First", "Name"]
+  FieldNaming.splitWords "GetUserById" ≡ ["Get", "User", "By", "Id"]
+
+test "splitWords - acronyms" := do
+  FieldNaming.splitWords "XMLParser" ≡ ["XML", "Parser"]
+  FieldNaming.splitWords "parseXML" ≡ ["parse", "XML"]
+  FieldNaming.splitWords "HTMLElement" ≡ ["HTML", "Element"]
+
+test "splitWords - with numbers" := do
+  FieldNaming.splitWords "user123" ≡ ["user", "123"]
+  FieldNaming.splitWords "v2Api" ≡ ["v", "2", "Api"]
+  FieldNaming.splitWords "int64Value" ≡ ["int", "64", "Value"]
+
+test "splitWords - edge cases" := do
+  FieldNaming.splitWords "" ≡ []
+  FieldNaming.splitWords "x" ≡ ["x"]
+  FieldNaming.splitWords "X" ≡ ["X"]
+  FieldNaming.splitWords "id" ≡ ["id"]
+
+test "toCamelCase - from snake_case" := do
+  FieldNaming.toCamelCase "first_name" ≡ "firstName"
+  FieldNaming.toCamelCase "last_name" ≡ "lastName"
+  FieldNaming.toCamelCase "get_user_by_id" ≡ "getUserById"
+  FieldNaming.toCamelCase "blocked_by" ≡ "blockedBy"
+
+test "toCamelCase - from kebab-case" := do
+  FieldNaming.toCamelCase "first-name" ≡ "firstName"
+  FieldNaming.toCamelCase "content-type" ≡ "contentType"
+
+test "toCamelCase - from PascalCase" := do
+  FieldNaming.toCamelCase "FirstName" ≡ "firstName"
+  FieldNaming.toCamelCase "GetUserById" ≡ "getUserById"
+
+test "toCamelCase - from SCREAMING_SNAKE" := do
+  FieldNaming.toCamelCase "FIRST_NAME" ≡ "firstName"
+  FieldNaming.toCamelCase "MAX_RETRIES" ≡ "maxRetries"
+
+test "toCamelCase - preserves camelCase" := do
+  FieldNaming.toCamelCase "firstName" ≡ "firstName"
+  FieldNaming.toCamelCase "getUserById" ≡ "getUserById"
+
+test "toSnakeCase - from camelCase" := do
+  FieldNaming.toSnakeCase "firstName" ≡ "first_name"
+  FieldNaming.toSnakeCase "lastName" ≡ "last_name"
+  FieldNaming.toSnakeCase "getUserById" ≡ "get_user_by_id"
+  FieldNaming.toSnakeCase "blockedBy" ≡ "blocked_by"
+
+test "toSnakeCase - from PascalCase" := do
+  FieldNaming.toSnakeCase "FirstName" ≡ "first_name"
+  FieldNaming.toSnakeCase "GetUserById" ≡ "get_user_by_id"
+
+test "toSnakeCase - from kebab-case" := do
+  FieldNaming.toSnakeCase "first-name" ≡ "first_name"
+  FieldNaming.toSnakeCase "content-type" ≡ "content_type"
+
+test "toSnakeCase - acronyms" := do
+  FieldNaming.toSnakeCase "XMLParser" ≡ "xml_parser"
+  FieldNaming.toSnakeCase "parseXML" ≡ "parse_xml"
+  FieldNaming.toSnakeCase "htmlElement" ≡ "html_element"
+
+test "toKebabCase - from camelCase" := do
+  FieldNaming.toKebabCase "firstName" ≡ "first-name"
+  FieldNaming.toKebabCase "getUserById" ≡ "get-user-by-id"
+
+test "toKebabCase - from snake_case" := do
+  FieldNaming.toKebabCase "first_name" ≡ "first-name"
+  FieldNaming.toKebabCase "get_user_by_id" ≡ "get-user-by-id"
+
+test "toKebabCase - from PascalCase" := do
+  FieldNaming.toKebabCase "FirstName" ≡ "first-name"
+
+test "toScreamingSnake - from camelCase" := do
+  FieldNaming.toScreamingSnake "firstName" ≡ "FIRST_NAME"
+  FieldNaming.toScreamingSnake "maxRetries" ≡ "MAX_RETRIES"
+
+test "toScreamingSnake - from snake_case" := do
+  FieldNaming.toScreamingSnake "first_name" ≡ "FIRST_NAME"
+  FieldNaming.toScreamingSnake "max_retries" ≡ "MAX_RETRIES"
+
+test "toPascalCase - from camelCase" := do
+  FieldNaming.toPascalCase "firstName" ≡ "FirstName"
+  FieldNaming.toPascalCase "getUserById" ≡ "GetUserById"
+
+test "toPascalCase - from snake_case" := do
+  FieldNaming.toPascalCase "first_name" ≡ "FirstName"
+  FieldNaming.toPascalCase "get_user_by_id" ≡ "GetUserById"
+
+test "FieldNaming.apply - preserve" := do
+  FieldNaming.apply .preserve "firstName" ≡ "firstName"
+  FieldNaming.apply .preserve "first_name" ≡ "first_name"
+
+test "FieldNaming.apply - all conventions" := do
+  let name := "blockedBy"
+  FieldNaming.apply .preserve name ≡ "blockedBy"
+  FieldNaming.apply .camelCase name ≡ "blockedBy"
+  FieldNaming.apply .snakeCase name ≡ "blocked_by"
+  FieldNaming.apply .kebabCase name ≡ "blocked-by"
+  FieldNaming.apply .screamingSnake name ≡ "BLOCKED_BY"
+
+test "FieldNaming.normalize" := do
+  FieldNaming.normalize "firstName" ≡ "firstname"
+  FieldNaming.normalize "first_name" ≡ "firstname"
+  FieldNaming.normalize "first-name" ≡ "firstname"
+  FieldNaming.normalize "FIRST_NAME" ≡ "firstname"
+
+test "FieldNaming.namesMatch" := do
+  (FieldNaming.namesMatch "firstName" "first_name") ≡ true
+  (FieldNaming.namesMatch "firstName" "first-name") ≡ true
+  (FieldNaming.namesMatch "firstName" "FIRST_NAME") ≡ true
+  (FieldNaming.namesMatch "blockedBy" "blocked_by") ≡ true
+  (FieldNaming.namesMatch "firstName" "lastName") ≡ false
+
 #generate_tests
 
 end Tests.Json
