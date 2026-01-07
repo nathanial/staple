@@ -1,19 +1,29 @@
 /-
-  Staple.Json - JSON string generation utilities
+  Staple.Json - JSON utilities
 
-  Provides a `jsonStr!` macro for creating JSON object strings with
-  object literal syntax that infers keys from variable names.
+  This module provides:
+  - JSON Value AST type with parsing and rendering
+  - ToJsonStr typeclass for string-based serialization
+  - jsonStr! macro for convenient JSON object creation
 
   Usage:
-    let columnId := 42
-    let name := "To Do"
-    jsonStr! { columnId, name }
-    -- produces: {"columnId": 42, "name": "To Do"}
+    -- Parse JSON
+    let json := Staple.Json.parse "{\"name\": \"Alice\", \"age\": 30}"
 
-    jsonStr! { "customKey" : someValue, shorthand }
-    -- explicit key syntax mixed with shorthand
+    -- Build JSON values
+    let obj := Value.mkObj #[("name", Value.str "Bob")]
+    let compact := obj.compress  -- {"name":"Bob"}
+    let pretty := obj.pretty     -- formatted with indentation
+
+    -- Quick string serialization
+    let columnId := 42
+    jsonStr! { columnId }  -- {"columnId": 42}
 -/
 import Lean
+import Staple.Json.Number
+import Staple.Json.Value
+import Staple.Json.Render
+import Staple.Json.Parse
 
 namespace Staple.Json
 
