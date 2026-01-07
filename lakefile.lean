@@ -2,13 +2,14 @@ import Lake
 open Lake DSL
 
 package staple where
+  version := v!"0.0.3"
   leanOptions := #[
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩
   ]
 
 require crucible from git "https://github.com/nathanial/crucible" @ "v0.0.3"
-require sift from git "https://github.com/nathanial/sift" @ "v0.0.3"
+require sift from git "https://github.com/nathanial/sift" @ "v0.0.4"
 
 @[default_target]
 lean_lib Staple where
