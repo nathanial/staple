@@ -8,7 +8,7 @@ package staple where
     ⟨`relaxedAutoImplicit, false⟩
   ]
 
-require crucible from git "https://github.com/nathanial/crucible" @ "v0.0.7"
+require crucible from git "https://github.com/nathanial/crucible" @ "v0.0.8"
 require sift from git "https://github.com/nathanial/sift" @ "v0.0.4"
 
 @[default_target]
