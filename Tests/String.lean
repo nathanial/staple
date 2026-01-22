@@ -51,6 +51,6 @@ test "dropLeftWhile" := do
   ("hello".dropLeftWhile (· == ' ')) ≡ "hello"
   ("   ".dropLeftWhile (· == ' ')) ≡ ""
 
-#generate_tests
+
 
 end Tests.String

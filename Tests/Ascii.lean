@@ -75,6 +75,6 @@ test "isAlphaByte" := do
   (isAlphaByte 97) ≡ true   -- 'a'
   (isAlphaByte 48) ≡ false  -- '0'
 
-#generate_tests
+
 
 end Tests.Ascii

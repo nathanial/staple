@@ -34,6 +34,6 @@ test "include_bytes% - preserves byte values" := do
   (sampleBytes.get! 3) ≡ 255
   (sampleBytes.get! 4) ≡ 254
 
-#generate_tests
+
 
 end Tests.Include

@@ -543,6 +543,6 @@ test "FieldNaming.namesMatch" := do
   (FieldNaming.namesMatch "blockedBy" "blocked_by") ≡ true
   (FieldNaming.namesMatch "firstName" "lastName") ≡ false
 
-#generate_tests
+
 
 end Tests.Json

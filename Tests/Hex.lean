@@ -55,6 +55,6 @@ test "ByteArray.fromHex - invalid" := do
   (ByteArray.fromHex "0g").isNone ≡ true
   (ByteArray.fromHex "abc").isNone ≡ true  -- odd length
 
-#generate_tests
+
 
 end Tests.Hex
