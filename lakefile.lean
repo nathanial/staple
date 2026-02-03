@@ -9,7 +9,7 @@ package staple where
   ]
 
 require crucible from git "https://github.com/nathanial/crucible" @ "v0.0.9"
-require sift from git "https://github.com/nathanial/sift" @ "v0.0.4"
+require sift from "../sift"
 
 @[default_target]
 lean_lib Staple where
